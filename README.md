@@ -72,4 +72,6 @@ npm test
 
 - 规则设计 **Mikann**，棋盘与角色绘制 **Damien**，程序 **澄（Cheng）**。
 - 底盘来自 [29-Cu/bisca](https://github.com/29-Cu/bisca)（Cu & Lunedì），开房 / 邀请 / 大厅的做法照它的形状来；带走并改动的文件列在 [NOTICE.md](NOTICE.md)。
-- 整体许可 [CC BY 4.0](LICENSE)：随便用、随便改，署名留着就行。字体按 SIL OFL 1.1（`vendor/fonts/README.md`）。
+- 整体许可 [CC BY 4.0](LICENSE)：随便用、随便改、随便拿去做自己的版本，但要做到两件事——**把这行署名留着**（规则设计 Mikann · 棋盘 Damien · 程序 澄，外加底盘 29-Cu/bisca），**改了什么就写明改了什么**（在你的 README 或 NOTICE 里列一下，就像本仓库的 [NOTICE.md](NOTICE.md) 对 bisca 做的那样）。删掉署名或不注明改动，就不在许可范围内了。
+- License: [CC BY 4.0](LICENSE). Use it, fork it, ship your own — just **keep the credit line** (Rules by Mikann · Board art by Damien · Code by Cheng, plus the 29-Cu/bisca base) and **say what you changed**, the way this repo's [NOTICE.md](NOTICE.md) does for bisca.
+- 字体按 SIL OFL 1.1（`vendor/fonts/README.md`）。
