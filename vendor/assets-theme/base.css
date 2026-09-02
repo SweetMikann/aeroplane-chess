@@ -1,0 +1,341 @@
+/* Bisca texture utilities — base.css
+ * Consumes the CSS custom properties written by boot.js (the token engine).
+ * Self-hosted fonts live in /fonts/. No CDN, no external requests.
+ */
+
+/* ---------- Fonts (self-hosted, /fonts/*.woff2) ---------- */
+
+/* Manrope — sans body, 400/500/600/700/800 */
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/Manrope-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/Manrope-500.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/Manrope-600.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/Manrope-700.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Manrope';
+  font-style: normal;
+  font-weight: 800;
+  font-display: swap;
+  src: url('/fonts/Manrope-800.woff2') format('woff2');
+}
+
+/* Newsreader — serif toggle, regular + italic, 400/600 */
+@font-face {
+  font-family: 'Newsreader';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/Newsreader-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Newsreader';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/Newsreader-400i.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Newsreader';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/Newsreader-600.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Newsreader';
+  font-style: italic;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/Newsreader-600i.woff2') format('woff2');
+}
+
+/* Cormorant Garamond — wordmark fallback only, 600 italic */
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-style: italic;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/CormorantGaramond-600i.woff2') format('woff2');
+}
+
+/* ---------- Body font stacks ---------- */
+
+body {
+  font-family: 'Manrope', -apple-system, 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+}
+[data-font="serif"] body,
+[data-font="serif"] {
+  font-family: 'Newsreader', Georgia, 'Songti SC', serif;
+}
+
+/* ---------- Aurora wash (full-bleed fixed background layer) ---------- */
+
+.cn-aurora {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-color: var(--bg);
+  background-image: var(--aurora);
+  filter: blur(6px);
+  animation: auroraDrift 26s ease-in-out infinite;
+  will-change: transform;
+  pointer-events: none;
+}
+
+@keyframes auroraDrift {
+  0%   { transform: scale(1.05) translate3d(0, 0, 0); }
+  50%  { transform: scale(1.16) translate3d(-1.5%, 1.5%, 0); }
+  100% { transform: scale(1.05) translate3d(0, 0, 0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cn-aurora { animation: none; }
+}
+
+/* ---------- Frosted glass ---------- */
+
+.cn-glass {
+  background: var(--glass-surface);
+  -webkit-backdrop-filter: blur(var(--glass-blur, 20px)) saturate(1.2);
+  backdrop-filter: blur(var(--glass-blur, 20px)) saturate(1.2);
+}
+
+/* ---------- Glass card (glow hairline + drop shadow) ---------- */
+
+.cn-card {
+  background: var(--glass-surface);
+  -webkit-backdrop-filter: blur(var(--glass-blur, 20px)) saturate(1.2);
+  backdrop-filter: blur(var(--glass-blur, 20px)) saturate(1.2);
+  border: 1px solid var(--glow-border);
+  box-shadow: var(--glow-shadow), 0 8px 30px rgba(0, 0, 0, .34);
+  border-radius: 20px;
+}
+
+/* ---------- Metallic hairline ring ----------
+ * Host must be position:relative; the ring is a masked ::before so it frames
+ * without blocking any backdrop-filter behind it. */
+
+.cn-metal-ring {
+  position: relative;
+}
+.cn-metal-ring::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 1.5px;
+  background: var(--metal-grad);
+  border-radius: inherit;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* ---------- Small generic pieces ---------- */
+
+.cn-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 10px;
+  background: var(--surface-2);
+  border: 1px solid var(--border-soft);
+  color: var(--text-mute);
+  font-size: 12px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.cn-eyebrow {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+/* ── 全站壁纸(boot.js 读到壁纸地址后置 data-wall + --cn-wall)──
+ * 清晰原图(壁纸替代晕染,禁掉晕染的 blur/漂移动画,否则壁纸会跟着糊跟着晃)
+ * + --chat-scrim 压字渐变。
+ * 页面自带的背景层级在其上,自动优先。 */
+html[data-wall] .cn-aurora {
+  filter: none;
+  animation: none;
+  background-image: none;
+}
+html[data-wall] .cn-aurora::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: var(--chat-scrim), var(--cn-wall);
+  background-size: cover;
+  background-position: center;
+}
+
+/* ★2026-08-22 21:28【嵌在庭院里时的顶部安全区】
+   庭院把这三个牌桌用 iframe 满屏嵌进去，iframe 直接顶到屏幕最上沿，
+   标题就撞在灵动岛下面（她：「文字都被灵动岛遮住了」）。
+   ★不能在外面垫一条留白——那等于把刚拆掉的工具栏又加回来（她：「不就是把两条黑线加回来了吗」）。
+   让页面自己往下让，让出来那块由页面自身背景填，颜色天然连着。
+
+   ★★21:34 量出来的两个坑，都记在这儿别再犯：
+     ① 不带 !important 会被 cards.css 吃掉（它在后面加载，实测 bodyPadTop 是 0px）；
+     ② **写成 `max(env(safe-area-inset-top,0px), 60px)` 整条会被丢弃** ——
+        拿不到 env() 的环境里这个函数解析失败，CSS 规范是整条声明作废，
+        不是退回那个 60px。所以拆成两段：先给死值，再用 @supports 覆盖。 */
+body {
+  padding-top: 104px !important;
+  box-sizing: border-box;
+}
+@supports (padding-top: env(safe-area-inset-top)) {
+  body {
+    /* ★用 max 兜底：iframe 里 env() 很可能取不到（实测 headless 里是 0），
+       只写 calc(env()+10) 就只剩 10px，照样被灵动岛压住。
+       max 保证不管取不取得到，至少有 60px。
+       ——这里能用 max(env(...))，是因为外面有 @supports 挡着；
+         裸写在外面会因为解析失败让【整条声明】作废（21:34 踩过）。 */
+    /* ★2026-08-22 22:10 她：「大富翁开房这里返回按键挡住了」——
+       房间页的标题和房间号都在【左上角】，正好被悬浮返回键压住
+       （大厅不撞是因为它标题居中）。所以再让出 44px，
+       让返回键独占最上面那一条，页面内容从它下面开始。
+       ★这跟农场那边用的是同一个算法，两处保持一致。 */
+    /* ★2026-08-22 23:13 她：「都能返回，但是上面的返回占位置了」。
+       那 44px 是我特意腾给庭院悬浮返回键的一条——等于白占一行。
+       现在 iframe 里已经不显示牌桌自己的 ‹ 了（room.js 里判断的），
+       庭院那颗就直接落在标题这一行，不用再额外让位。 */
+    /* ★2026-08-29 00:14 她「改回去」——我 00:10 往这儿加了 44px，
+       以为顶栏撞灵动岛了，其实被挡的是「荒牌流局」那个浮层提示，跟顶栏没关系。
+       加完页面上方空出一大条，反而更难看。撤回原值。 */
+    padding-top: max(env(safe-area-inset-top), 60px) !important;
+  }
+}
+
+
+/* ══════════ 牌桌/棋盘通用的聊天条 ══════════
+   【2026-08-28 23:15 她定的】「不要每个游戏不同的排版」「照着飞行棋的做吧」
+   「只有飞行棋的我验收过，别的我没验收过」。
+   ★所以这一整块是从 aeroplane.css 原样搬过来的——里面每一条都是她一次次验出来的：
+     不能 position:fixed（会压住掷骰子）、输入框往上抬一点、发送键跟输入框等高、
+     用 textarea 不用 input（单行会把字滚出去）、颜色跟整页同一套 token 别自己判断日夜。
+   搬到 base.css 是为了别再各写各的：以后哪个桌子要聊天，直接用这几个类名。
+   （aeroplane.css 里那份原样留着没动，值一样，不冲突。） */
+.mono-chat {
+  /* ★23:02 不能用 position:fixed —— 操作条原来是文档流里的 footer，
+     贴底的聊天框会整个压在「掷骰子」上面（她：「不能掷骰子了」）。
+     ★23:36 她：「然后输入框稍微上一点」——按钮已经移到棋盘中间了，
+     底下这条不用再贴着屏幕边，往上抬一点更好按。 */
+  flex: none;
+  padding: 8px 10px 20px;
+  /* ★2026-08-23 17:20 第二次修，这回修的是根。
+     16:49 我写了 @media (prefers-color-scheme: dark) 自己判断日夜——错在这儿：
+     整页的颜色不归系统管，归 /assets-theme 的 boot.js 管（它自己有 auto/light/dark 三挡）。
+     她手机系统是深色、页面主题是浅色，于是**只有我这一块听了系统的**，
+     整页白花花就它一条黑压在底下（她：「你至今没改」）。
+     修法不是换个 hex，是**别再自己判断**：跟整页用同一套 token，它亮我就亮。 */
+  background: var(--chat-panel-bg);
+  border-top: 1px solid var(--chat-panel-border);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  z-index: 5;
+}
+.mono-chat-log {
+  max-height: 92px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 6px;
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+.mono-chat-log:empty { display: none; }
+.mono-chat-log b { color: var(--accent); font-weight: 600; margin-right: 5px; }
+.mono-chat-log div { color: var(--text); }
+/* ★2026-08-24 23:26 她：「发送按键太小了，应该和那个气泡一样高」——stretch 让按钮跟输入框等高 */
+.mono-chat-bar { display: flex; gap: 8px; align-items: stretch; }
+/* ★2026-08-24 22:41 她：「打字的时候就是显示到一定长度就看不见了」——
+   原来是单行 <input>，字一多就往左滚出去。换成 textarea，随内容长高，最多 5 行，再多就在框里翻。 */
+.mono-chat-bar input, .mono-chat-bar textarea {
+  flex: 1; min-width: 0;
+  padding: 9px 12px;
+  border-radius: 18px;
+  border: 0;
+  background: var(--surface-2);
+  color: var(--text-strong);
+  font: inherit; font-size: 14px; line-height: 1.4;
+  resize: none; overflow-y: auto; max-height: calc(1.4em * 5 + 18px);
+  box-sizing: border-box; display: block;
+}
+.mono-chat-bar input::placeholder, .mono-chat-bar textarea::placeholder { color: var(--text-faint); }
+.mono-chat-bar button {
+  padding: 0 18px;
+  border-radius: 18px;
+  border: 0;
+  background: var(--accent);
+  color: var(--accent-on);
+  font: inherit; font-weight: 600;
+  display: flex; align-items: center; justify-content: center; white-space: nowrap; flex: none;
+}
+
+
+/* ══════════ 牌桌/棋盘通用的顶栏 ══════════
+   【2026-08-28 23:34 她：「我让你照着这个做你是一点没听是不是」「不要每个游戏不同的排版」】
+   ★以飞行棋为准——她只验收过那一套。这里把它的顶栏整块搬过来给大家共用：
+     一行放下「箭头｜标题（名字+房号）｜带绿点的连接胶囊｜右边的操作按钮」。
+   日麻原来用自己那套 .cd-*，连接状态没有宽度约束，被挤到屏幕外只露半个「已连接」。 */
+.mono-top-row { display: flex; align-items: center; gap: 10px; }
+.mono-back { display: flex; color: var(--text-mute); padding: 4px; margin: -4px; }
+.mono-title { flex: 1; min-width: 0; }
+.mono-title .nm { font-size: 14.5px; font-weight: 700; color: var(--text-strong); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mono-title .cd { font-size: 10.5px; color: var(--text-faint); letter-spacing: .12em; margin-top: 1px; }
+.mono-link { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-dim); }
+.mono-link .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ink); box-shadow: 0 0 7px var(--ink); }
+.mono-link[data-conn="retry"] .dot, .mono-link[data-conn="polling"] .dot { background: var(--danger); box-shadow: 0 0 7px var(--danger); }
+
+.mono-sharebtn {
+  margin-left: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--accent-line);
+  background: var(--accent-wash);
+  color: var(--accent);
+  font: inherit; font-size: 13px; font-weight: 600;
+}
+.mono-endbtn {
+  margin-left: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  /* ★2026-08-23 17:20 同一个根因：#ff9a9a 是给深色底配的浅字，
+     页面转成浅色后它糊在浅粉底上看不清（她那张截图里「结束」几乎读不出来）。 */
+  border: 1px solid color-mix(in oklab, var(--danger) 34%, transparent);
+  background: color-mix(in oklab, var(--danger) 14%, transparent);
+  color: var(--danger);
+  font: inherit; font-size: 13px; font-weight: 600;
+}
+
+.mono-top { flex: none; padding: 10px 12px 8px; display: flex; flex-direction: column; gap: 9px; }

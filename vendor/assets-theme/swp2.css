@@ -1,0 +1,8 @@
+/* 房卡左滑删除（2026-09-02，六个大厅共用）：原来那颗 × 藏起来，左滑露出红色「删除」 */
+.mono-room-close, .dw-room-close, .cd-room-close, .df-room-close { display: none !important; }
+.swp-wrap { position: relative; overflow: visible; }  /* 13:27 她说丑：不再硬裁卡片，整张滑过去，圆角留着 */
+.swp-wrap > a.cn-card { position: relative; z-index: 1; transition: transform .22s ease; } /* 不改 display：房卡本来是 flex，13:02 她截到 › 掉行 */
+.swp-del { position: absolute; top: 6px; right: 6px; bottom: 6px; width: 82px; border: 0; padding: 0;
+  background: #e5533f; color: #fff; font-size: 15px; font-weight: 700; letter-spacing: .06em;
+  border-radius: 14px; opacity: 0; transition: opacity .15s; -webkit-appearance: none; appearance: none; }
+.swp-wrap.is-open .swp-del { opacity: 1; }

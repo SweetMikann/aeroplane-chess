@@ -1,0 +1,4 @@
+{
+  "_readme": "复制成 config.json（首次启动会自动生成，cookie_secret 会自动填）。allow_guests=true 才允许没登录的朋友凭邀请链接进房。棋盘和规则写在 engine.cjs 里，不外挂。",
+  "allow_guests": true
+}

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <!-- iOS 18.0.x standalone bug 绕开：必须 black，绝不用 black-translucent -->
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="theme-color" content="#0a0a0f">
+  <title>飞行棋 · 房间</title>
+  <script src="/assets-theme/boot.js?v=20260824130034"></script>
+  <script src="/assets-theme/icons.js?v=20260824130034"></script>
+  <link rel="stylesheet" href="/assets-theme/base.css?v=20260829c">
+  <link rel="stylesheet" href="aeroplane.css?v=20260829171741">
+</head>
+<body class="mono-room">
+  <div class="cn-aurora"></div>
+
+  <header class="mono-top">
+    <div class="mono-top-row">
+      <a class="mono-back" id="r-back" href="/aeroplane/" aria-label="回大厅"></a>
+      <div class="mono-title">
+        <div class="nm" id="r-name">房间</div>
+        <div class="cd" id="r-code"></div>
+      </div>
+      <div class="mono-link" id="r-conn" data-conn="retry"><span class="dot"></span><span class="tx">连接中</span></div>
+      <button class="mono-sharebtn" id="r-share" type="button" hidden>邀请</button>
+      <button class="mono-sharebtn" id="r-pause" type="button" hidden>暂停</button>
+      <button class="mono-endbtn" id="r-end" type="button" hidden>结束</button>
+    </div>
+    <div class="mono-players" id="r-players"></div>
+  </header>
+
+  <main class="mono-shell">
+    <div class="aero-stage">
+      <div class="aero-board" id="r-board" hidden></div>
+      <div class="mono-wait" id="r-wait" hidden></div>
+    </div>
+  </main>
+
+  <div class="aero-gamelog" id="r-gamelog"></div>
+
+  <div class="mono-chat" id="r-chat">
+    <div class="mono-chat-log" id="r-chat-log"></div>
+    <form class="mono-chat-bar" id="r-chat-form" autocomplete="off">
+      <textarea id="r-chat-input" rows="1" maxlength="500" placeholder="说点什么…" enterkeyhint="send"></textarea>
+      <button type="submit">发送</button>
+    </form>
+  </div>
+  <footer class="mono-actions" id="r-actions"></footer>
+
+  <script src="js/sfx.js?v=20260825010000"></script>
+  <script src="js/api.js?v=20260824225322"></script>
+  <script src="js/aeroboard.js?v=20260826001036"></script>
+  <script src="js/ui.js?v=20260825004500"></script>
+  <script src="js/room.js?v=20260829171741"></script>
+</body>
+</html>

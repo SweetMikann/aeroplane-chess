@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <!-- iOS 18.0.x standalone bug 绕开：必须 black，绝不用 black-translucent -->
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="theme-color" content="#0a0a0f">
+  <title>飞行棋 · 大厅</title>
+  <script src="/assets-theme/boot.js?v=20260824130034"></script>
+  <script src="/assets-theme/icons.js?v=20260824130034"></script>
+  <link rel="stylesheet" href="/assets-theme/swp2.css?v=2">
+  <link rel="stylesheet" href="/assets-theme/base.css?v=20260829c">
+  <link rel="stylesheet" href="aeroplane.css?v=20260902refresh">
+</head>
+<body>
+  <div class="cn-aurora"></div>
+
+  <div class="lobby">
+    <div class="lb-head">
+      <h1>飞行棋</h1>
+      <p>开一间房，把邀请链接丢给对面，坐满就能起飞</p>
+    </div>
+
+    <section class="cn-card lb-card">
+      <div class="hd"><span class="ic" id="lb-ic-new"></span>开个新房间</div>
+      <div class="mono-field">
+        <span class="k">房间名</span>
+        <input id="lb-room" maxlength="24" placeholder="比如「火锅回来打一局」">
+      </div>
+      <div class="mono-field">
+        <span class="k">你的昵称</span>
+        <input id="lb-name" maxlength="16" placeholder="怎么称呼你">
+      </div>
+      <div class="mono-field">
+        <span class="k">阵营</span>
+        <div class="mono-swatches" id="lb-colors"></div>
+      </div>
+      <button class="mono-btn mono-btn--primary" id="lb-create">建房间并入座</button>
+    </section>
+
+    <section>
+      <div class="lb-sec"><span class="mono-eyebrow">房间</span>
+        <button class="mono-btn mono-btn--ghost mono-btn--sm" id="lb-refresh"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 12a8 8 0 0 1 13.7-5.6L20 8"/><path d="M20 3.5V8h-4.5"/><path d="M20 12a8 8 0 0 1-13.7 5.6L4 16"/><path d="M4 20.5V16h4.5"/></svg></button>
+      </div>
+      <div class="lb-rooms" id="lb-rooms"><div class="lb-empty">加载中…</div></div>
+    </section>
+  </div>
+
+  <script src="js/api.js?v=20260824225345"></script>
+  <script src="js/aeroboard.js?v=20260824130034"></script>
+  <script src="js/ui.js?v=20260824130034"></script>
+  <script src="js/lobby.js?v=20260902close"></script>
+  <script src="/assets-theme/swp2.js?v=2"></script>
+</body>
+</html>

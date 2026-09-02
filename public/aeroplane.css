@@ -1,0 +1,746 @@
+/* Bisca 大富翁 —— 大厅 + 房间共享样式
+ * 地基是 /assets-theme 三件套（boot.js 注入 oklch token、base.css 出 .cn-aurora/.cn-card/.cn-glass）。
+ * 这里只写本项目自己的件；颜色一律走 token，唯二例外是「数据色」：
+ *   ① 棋盘 8 个色组的固定色相（oklch 直写，见 .mono-cell[data-group]）
+ *   ② 玩家棋子色（后端下发的 hex，写在 style 属性里）
+ */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* 本页大量用 hidden 属性开关面板，这些面板自身是 flex/grid，得压过去 */
+[hidden] { display: none !important; }
+
+body {
+  color: var(--text);
+  min-height: 100dvh;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+a { color: inherit; text-decoration: none; }
+
+button {
+  font: inherit;
+  color: inherit;
+  background: none;
+  border: none;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+input, select {
+  font: inherit;
+  color: var(--text-strong);
+  background: var(--surface-2);
+  border: 1px solid var(--border-soft);
+  border-radius: 12px;
+  padding: 10px 12px;
+  width: 100%;
+  outline: none;
+}
+input:focus { border-color: var(--accent-line); box-shadow: 0 0 0 3px var(--accent-wash); }
+input::placeholder { color: var(--text-faint); }
+
+/* ═════════ 通用小件 ═════════ */
+
+.mono-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  min-height: 44px; padding: 0 16px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 14px; font-weight: 600;
+  white-space: nowrap;
+  transition: transform .12s ease, opacity .15s ease, background .15s ease;
+}
+.mono-btn:active { transform: scale(.97); }
+.mono-btn[disabled] { opacity: .38; pointer-events: none; }
+.mono-btn .ic { display: flex; }
+
+.mono-btn--primary {
+  background: var(--accent-grad);
+  color: var(--accent-on);
+  border-color: transparent;
+  box-shadow: var(--glow-shadow);
+}
+.mono-btn--ghost { background: transparent; color: var(--text-mute); }
+.mono-btn--danger { background: transparent; border-color: var(--danger); color: var(--danger); }
+.mono-btn--sm { min-height: 34px; padding: 0 12px; font-size: 12px; border-radius: 11px; }
+
+.mono-eyebrow {
+  font-size: 10px; font-weight: 700; letter-spacing: .22em;
+  text-transform: uppercase; color: var(--text-faint);
+}
+
+.mono-dot {
+  width: 10px; height: 10px; border-radius: 50%;
+  display: inline-block; flex: none;
+  box-shadow: 0 0 0 1px rgb(0 0 0 / .35) inset;
+}
+
+/* toast —— 后端 400 的中文错误直接扔这儿 */
+.mono-toasts {
+  position: fixed; left: 0; right: 0; z-index: 9500;
+  /* 2026-08-24 她抓的：提示条顶着屏幕顶画，正好埋进灵动岛底下 */
+  top: calc(env(safe-area-inset-top, 14px) + 10px);
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  pointer-events: none; padding: 0 16px;
+}
+.mono-toast {
+  max-width: 440px;
+  padding: 10px 15px; border-radius: 14px;
+  background: var(--glass-surface);
+  -webkit-backdrop-filter: blur(var(--glass-blur, 20px)) saturate(1.2);
+  backdrop-filter: blur(var(--glass-blur, 20px)) saturate(1.2);
+  border: 1px solid var(--glow-border);
+  box-shadow: var(--glow-shadow), 0 8px 30px rgb(0 0 0 / .34);
+  color: var(--text-strong); font-size: 13px; line-height: 1.5;
+  animation: monoToastIn .22s ease both;
+}
+.mono-toast.is-bad { border-color: var(--danger); color: var(--danger); }
+.mono-toast.is-out { animation: monoToastOut .2s ease both; }
+@keyframes monoToastIn { from { opacity: 0; transform: translateY(-10px); } }
+@keyframes monoToastOut { to { opacity: 0; transform: translateY(-8px); } }
+
+/* 通用遮罩层 */
+.mono-scrim {
+  position: fixed; inset: 0; z-index: 9200;
+  background: var(--scrim, rgb(0 0 0 / .55));
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  animation: monoFade .2s ease both;
+}
+@keyframes monoFade { from { opacity: 0; } }
+
+.mono-modal {
+  width: 100%; max-width: 380px;
+  background: var(--glass-surface);
+  -webkit-backdrop-filter: blur(var(--glass-blur, 20px)) saturate(1.2);
+  backdrop-filter: blur(var(--glass-blur, 20px)) saturate(1.2);
+  border: 1px solid var(--glow-border);
+  box-shadow: var(--glow-shadow), 0 14px 40px rgb(0 0 0 / .45);
+  border-radius: 22px; padding: 18px;
+  max-height: 84dvh; overflow-y: auto;
+  animation: monoPop .24s cubic-bezier(.2, .9, .3, 1.2) both;
+}
+@keyframes monoPop { from { opacity: 0; transform: translateY(14px) scale(.96); } }
+.mono-modal h2 { font-size: 17px; font-weight: 700; color: var(--text-strong); }
+.mono-modal .sub { font-size: 12.5px; color: var(--text-dim); margin-top: 5px; line-height: 1.6; }
+
+/* 色板 */
+.mono-swatches { display: flex; flex-wrap: wrap; gap: 10px; }
+.mono-sw {
+  width: 34px; height: 34px; border-radius: 50%;
+  border: 2px solid transparent;
+  box-shadow: 0 0 0 1px var(--border-soft);
+  position: relative;
+  transition: transform .14s ease;
+}
+.mono-sw:active { transform: scale(.92); }
+.mono-sw.is-on { border-color: var(--text-strong); box-shadow: 0 0 0 1px var(--border-soft), 0 0 12px var(--accent-wash); }
+.mono-sw.is-taken { opacity: .25; pointer-events: none; }
+
+.mono-field { display: flex; flex-direction: column; gap: 7px; }
+.mono-field > .k { font-size: 12px; color: var(--text-mute); font-weight: 600; }
+
+/* ═════════ 大厅 ═════════ */
+
+.lobby { max-width: 520px; margin: 0 auto; padding: 16px 16px 28px; display: flex; flex-direction: column; gap: 16px; }
+
+.lb-head { text-align: center; padding: 8px 0 2px; }
+.lb-head h1 { font-size: 26px; font-weight: 800; color: var(--text-strong); letter-spacing: -.01em; }
+.lb-head p { font-size: 12.5px; color: var(--text-dim); margin-top: 6px; }
+
+.lb-card { padding: 16px 17px; display: flex; flex-direction: column; gap: 13px; }
+.lb-card .hd { display: flex; align-items: center; gap: 9px; color: var(--text-strong); font-size: 15px; font-weight: 700; }
+.lb-card .hd .ic { color: var(--accent); display: flex; }
+
+.lb-rooms { display: flex; flex-direction: column; gap: 10px; }
+.lb-sec { display: flex; align-items: center; justify-content: space-between; padding: 4px 2px; }
+
+.room-card { padding: 14px 15px; display: flex; align-items: center; gap: 12px; transition: transform .14s ease; }
+.room-card:active { transform: scale(.985); }
+.room-card .main { flex: 1; min-width: 0; }
+.room-card .nm { font-size: 15px; font-weight: 700; color: var(--text-strong); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.room-card .sub { font-size: 11.5px; color: var(--text-dim); margin-top: 4px; display: flex; align-items: center; gap: 7px; }
+.room-card .avatars { display: flex; gap: 4px; margin-top: 8px; }
+.room-card .chev { color: var(--text-faint); display: flex; }
+
+.mono-tag {
+  font-size: 10.5px; font-weight: 700; padding: 3px 8px; border-radius: 99px;
+  border: 1px solid var(--border-soft); color: var(--text-mute); background: var(--surface-2);
+}
+.mono-tag.is-open { color: var(--accent); border-color: var(--accent-line); background: var(--accent-wash); }
+.mono-tag.is-live { color: var(--ink); border-color: var(--ink); background: var(--ink-wash); }
+.mono-tag.is-done { color: var(--text-faint); }
+
+.lb-empty { text-align: center; color: var(--text-faint); font-size: 13px; padding: 26px 0; }
+
+/* ═════════ 房间外壳 ═════════ */
+
+body.mono-room {
+  height: 100dvh; overflow: hidden;
+  display: flex; flex-direction: column;
+}
+
+/* status-bar=black 时 iOS standalone 已经把视口压到状态栏下方，这里不再自己垫 safe-area */
+.mono-top { flex: none; padding: 10px 12px 8px; display: flex; flex-direction: column; gap: 9px; }
+.mono-top-row { display: flex; align-items: center; gap: 10px; }
+.mono-back { display: flex; color: var(--text-mute); padding: 4px; margin: -4px; }
+.mono-title { flex: 1; min-width: 0; }
+.mono-title .nm { font-size: 14.5px; font-weight: 700; color: var(--text-strong); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mono-title .cd { font-size: 10.5px; color: var(--text-faint); letter-spacing: .12em; margin-top: 1px; }
+.mono-link { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--text-dim); }
+.mono-link .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ink); box-shadow: 0 0 7px var(--ink); }
+.mono-link[data-conn="retry"] .dot, .mono-link[data-conn="polling"] .dot { background: var(--danger); box-shadow: 0 0 7px var(--danger); }
+
+/* 玩家栏 */
+.mono-players { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 2px; }
+.mono-players::-webkit-scrollbar { display: none; }
+.pl-card {
+  flex: none; min-width: 96px;
+  padding: 8px 10px; border-radius: 14px;
+  background: var(--surface-2); border: 1px solid var(--border-faint);
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+.pl-card .top { display: flex; align-items: center; gap: 6px; }
+.pl-card .nm { font-size: 12px; font-weight: 700; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pl-card .cash { font-size: 13px; font-weight: 700; color: var(--text-strong); margin-top: 3px; font-variant-numeric: tabular-nums; }
+.pl-card .tail { font-size: 10px; color: var(--text-faint); margin-top: 2px; display: flex; gap: 5px; }
+/* ★2026-09-02 12:15 她圈图：卡片圆角外露出一块浅色直角（iPhone 上 box-shadow 不认圆角，转账卡那次同款）→ 阴影去掉，只留边和底色 */
+.pl-card.is-turn { border-color: var(--accent-line); box-shadow: none; background: var(--accent-wash); }
+.pl-card.is-finished { box-shadow: none; }
+.pl-card.is-out { opacity: .38; }
+.pl-card.is-me .nm::after { content: '（我）'; color: var(--text-faint); font-weight: 500; }
+
+/* 欠款警示条 */
+/* ★2026-08-22 23:50 她：「红字部分被灵动岛遮挡」。
+   这条提示浮在最上面，正好撞进状态栏/灵动岛那一条。往下压过安全区。 */
+.mono-alert {
+  flex: none; margin: calc(max(env(safe-area-inset-top), 44px) + 6px) 12px 8px; padding: 9px 13px; border-radius: 14px;
+  border: 1px solid var(--danger); color: var(--danger);
+  font-size: 12.5px; line-height: 1.5;
+  background: color-mix(in srgb, var(--danger) 12%, transparent);
+  animation: monoPulse 1.6s ease-in-out infinite;
+}
+@keyframes monoPulse { 50% { opacity: .6; } }
+@media (prefers-reduced-motion: reduce) { .mono-alert { animation: none; } }
+
+/* ═════════ 舞台 / 缩放视口 ═════════ */
+
+/* shell 是定位容器：舞台/等人面板/缩放按钮都是它的兄弟层，
+ * 缩放按钮不放进舞台，免得被 setPointerCapture 抢走 click */
+.mono-shell { flex: 1; min-height: 0; position: relative; overflow: hidden; }
+.mono-stage { position: absolute; inset: 0; overflow: hidden; touch-action: none; }
+.mono-canvas { position: absolute; left: 0; top: 0; transform-origin: 0 0; will-change: transform; }
+
+/* ★2026-08-22 23:28 她圈过这三颗：它们压在棋盘第一排格子上。
+   我试过挪到棋盘上方那条空隙（top:-42px），但 .mono-stage 是 overflow:hidden，
+   挪出去会被整个裁掉——**改这个得先动父层的裁剪，今天不动它**，免得又冒出新毛病。 */
+.mono-zoom {
+  position: absolute; right: 10px; top: 8px; z-index: 5;
+  display: flex; gap: 6px;
+}
+.mono-zoom button {
+  width: 36px; height: 36px; border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--glass-surface);
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  border: 1px solid var(--glow-border); color: var(--text-mute);
+}
+
+/* ═════════ 棋盘 ═════════ */
+
+.mono-board {
+  --mono-size: 820px;
+  position: relative;
+  width: var(--mono-size); height: var(--mono-size);
+  display: grid;
+  grid-template-columns: 1.45fr repeat(9, 1fr) 1.45fr;
+  grid-template-rows: 1.45fr repeat(9, 1fr) 1.45fr;
+  gap: 3px;
+  padding: 8px;
+  border-radius: 24px;
+  background: var(--surface);
+  border: 1px solid var(--glow-border);
+  box-shadow: var(--glow-shadow), 0 18px 50px rgb(0 0 0 / .4);
+}
+
+.mono-cell {
+  position: relative;
+  border-radius: 8px;
+  background: var(--surface-2);
+  border: 1px solid var(--border-faint);
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  padding: 0 3px 3px;
+  transition: box-shadow .25s ease, border-color .25s ease;
+}
+.mono-cell.is-corner { background: var(--surface-3); border-radius: 12px; }
+.mono-cell.is-here { border-color: var(--accent); box-shadow: 0 0 14px var(--accent-wash), inset 0 0 18px var(--accent-wash); }
+.mono-cell.is-pick { border-color: var(--ink); box-shadow: 0 0 14px var(--ink-wash); }
+
+/* 组色条（数据色：8 个固定色相，oklch 直写不算硬编码） */
+.mono-cell .cbar { display: block; height: 7px; margin: 0 -3px 4px; background: var(--grp, transparent); flex: none; }
+[data-group="g1"] { --grp: oklch(.55 .09 55); }
+[data-group="g2"] { --grp: oklch(.78 .10 225); }
+[data-group="g3"] { --grp: oklch(.70 .15 350); }
+[data-group="g4"] { --grp: oklch(.72 .16 55); }
+[data-group="g5"] { --grp: oklch(.62 .20 25); }
+[data-group="g6"] { --grp: oklch(.85 .15 95); }
+[data-group="g7"] { --grp: oklch(.62 .15 150); }
+[data-group="g8"] { --grp: oklch(.52 .16 265); }
+/* 奢侈税：不给它色组，给它 accent + 一枚线框皇冠 */
+[data-type="luxury_tax"] { --grp: var(--accent); }
+.mono-cell[data-type="luxury_tax"] { border-color: var(--accent-line); }
+.mono-cell[data-type="luxury_tax"] .cname { color: var(--accent); }
+
+.mono-cell .cname {
+  font-size: 9px; line-height: 1.25; font-weight: 700; color: var(--text);
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+  overflow: hidden; word-break: break-all;
+}
+.mono-cell.is-corner .cname { font-size: 11px; -webkit-line-clamp: 3; }
+.mono-cell .cname .crown { display: inline-block; vertical-align: -2px; color: var(--accent); }
+.mono-cell .cico { display: flex; justify-content: center; color: var(--text-faint); padding: 2px 0; }
+.mono-cell[data-type="luxury_tax"] .cico { color: var(--accent); }
+.mono-cell .cprice { font-size: 8.5px; color: var(--text-faint); font-variant-numeric: tabular-nums; margin-top: auto; }
+.mono-cell .cown { position: absolute; right: 3px; bottom: 3px; width: 9px; height: 9px; border-radius: 50%; box-shadow: 0 0 0 1px rgb(0 0 0 / .4) inset, 0 0 6px currentColor; }
+
+/* 房子指示：1-4 个小方块，第 5 栋 = 一枚菱形旅馆 */
+.mono-cell .chouses { position: absolute; left: 3px; top: 9px; display: flex; gap: 2px; }
+.mono-cell .chouses i { width: 5px; height: 5px; border-radius: 1.5px; background: var(--ink); box-shadow: 0 0 4px var(--ink); }
+.mono-cell .chouses i.hotel { width: 8px; height: 8px; border-radius: 2px; transform: rotate(45deg); background: var(--accent); box-shadow: 0 0 6px var(--accent); }
+
+/* 棋子层（绝对定位 → left/top 过渡即滑动） */
+.mono-tokens { position: absolute; inset: 0; pointer-events: none; }
+.mono-token {
+  position: absolute; width: 15px; height: 15px; border-radius: 50%;
+  border: 2px solid var(--surface);
+  box-shadow: 0 0 8px currentColor, 0 2px 5px rgb(0 0 0 / .5);
+  transition: left .45s cubic-bezier(.35, .9, .35, 1), top .45s cubic-bezier(.35, .9, .35, 1);
+}
+.mono-token.is-turn { outline: 2px solid var(--text-strong); outline-offset: 1px; }
+.mono-token.is-out { opacity: .25; box-shadow: none; }
+@media (prefers-reduced-motion: reduce) { .mono-token { transition: none; } }
+
+/* ═════════ 中央区 ═════════ */
+
+.mono-center {
+  grid-row: 2 / 11; grid-column: 2 / 11;
+  border-radius: 16px;
+  background: var(--surface);
+  border: 1px solid var(--border-faint);
+  display: flex; flex-direction: column; align-items: center;
+  padding: 18px 16px; gap: 14px; overflow: hidden;
+}
+.cc-turn { font-size: 13px; color: var(--text-mute); text-align: center; }
+.cc-turn b { color: var(--text-strong); }
+.cc-phase { font-size: 11px; color: var(--text-faint); margin-top: 3px; }
+
+.cc-dice { display: flex; gap: 14px; }
+.mono-die {
+  width: 44px; height: 44px; border-radius: 10px;
+  background: var(--surface-3); border: 1px solid var(--border);
+  box-shadow: inset 0 1px 0 var(--border-soft), 0 4px 12px rgb(0 0 0 / .35);
+  display: grid; grid-template-columns: repeat(3, 1fr); grid-template-rows: repeat(3, 1fr);
+  padding: 6px;
+}
+.mono-die .pip { width: 6px; height: 6px; border-radius: 50%; background: var(--text-strong); opacity: 0; place-self: center; }
+.mono-die[data-v="1"] .pip:nth-child(5) { opacity: 1; }
+.mono-die[data-v="2"] .pip:nth-child(1), .mono-die[data-v="2"] .pip:nth-child(9) { opacity: 1; }
+.mono-die[data-v="3"] .pip:nth-child(1), .mono-die[data-v="3"] .pip:nth-child(5), .mono-die[data-v="3"] .pip:nth-child(9) { opacity: 1; }
+.mono-die[data-v="4"] .pip:nth-child(1), .mono-die[data-v="4"] .pip:nth-child(3),
+.mono-die[data-v="4"] .pip:nth-child(7), .mono-die[data-v="4"] .pip:nth-child(9) { opacity: 1; }
+.mono-die[data-v="5"] .pip:nth-child(1), .mono-die[data-v="5"] .pip:nth-child(3), .mono-die[data-v="5"] .pip:nth-child(5),
+.mono-die[data-v="5"] .pip:nth-child(7), .mono-die[data-v="5"] .pip:nth-child(9) { opacity: 1; }
+.mono-die[data-v="6"] .pip:nth-child(1), .mono-die[data-v="6"] .pip:nth-child(3), .mono-die[data-v="6"] .pip:nth-child(4),
+.mono-die[data-v="6"] .pip:nth-child(6), .mono-die[data-v="6"] .pip:nth-child(7), .mono-die[data-v="6"] .pip:nth-child(9) { opacity: 1; }
+.mono-die.is-rolling { animation: monoDie .8s cubic-bezier(.3, .7, .4, 1) both; }
+@keyframes monoDie {
+  0%   { transform: rotate(0) translateY(0) scale(1); }
+  25%  { transform: rotate(-22deg) translateY(-14px) scale(1.08); }
+  50%  { transform: rotate(18deg) translateY(-4px) scale(1.04); }
+  75%  { transform: rotate(-9deg) translateY(-8px) scale(1.05); }
+  100% { transform: rotate(0) translateY(0) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) { .mono-die.is-rolling { animation: none; } }
+
+.cc-log {
+  flex: 1; min-height: 0; width: 100%; display: flex; flex-direction: column; gap: 5px;
+  /* 2026-08-23 堂妹提的：「我本来想看我前面是怎么弄的」——原来 overflow:hidden 只露最近 6 条，翻不回去。
+     flex-end 在可滚容器里会裁掉顶部，所以贴底改用 :first-child 的 margin-top:auto。
+     touch-action:pan-y 是必须的：棋盘那层吃拖拽和缩放，不声明的话手指在日志上滑会被棋盘抢走。 */
+  overflow-y: auto; overflow-x: hidden;
+  -webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y;
+  scrollbar-width: none;
+}
+.cc-log::-webkit-scrollbar { width: 0; height: 0; }
+.cc-log .row:first-child { margin-top: auto; }
+.cc-log .row {
+  font-size: 11px; line-height: 1.45; color: var(--text-dim);
+  padding: 4px 9px; border-radius: 9px; background: var(--surface-2);
+  animation: monoLogIn .28s ease both;
+}
+.cc-log .row:last-child { color: var(--text-strong); background: var(--accent-wash); }
+@keyframes monoLogIn { from { opacity: 0; transform: translateY(6px); } }
+
+/* ═════════ 等人中（未开局）面板 ═════════ */
+
+.mono-wait { position: absolute; inset: 0; z-index: 4; touch-action: auto; display: flex; align-items: center; justify-content: center; padding: 20px; overflow-y: auto; }
+.mono-wait .box { width: 100%; max-width: 360px; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+.mono-wait h2 { font-size: 18px; font-weight: 700; color: var(--text-strong); }
+.mono-wait .sub { font-size: 12.5px; color: var(--text-dim); line-height: 1.6; }
+.mono-seatlist { display: flex; flex-direction: column; gap: 8px; }
+.mono-seat { display: flex; align-items: center; gap: 9px; padding: 9px 11px; border-radius: 12px; background: var(--surface-2); border: 1px solid var(--border-faint); }
+.mono-seat .nm { flex: 1; font-size: 13px; color: var(--text); font-weight: 600; }
+.mono-seat .role { font-size: 10.5px; color: var(--text-faint); }
+
+/* ═════════ 操作条 ═════════ */
+
+/* ★2026-08-22 操作条位置，这一晚试了五轮，她最后定在【骰子下面】：
+     23:19 挪到骰子下面 → 23:21 挪回底部 → 23:23 再挪上去 →
+     23:26 底部无玻璃底（她：更丑）→ 23:31 回原样 → 23:34 她：「改回按钮在中间吧」
+   ★定稿＝中间。别再动。 */
+.mono-actions {
+  position: fixed;
+  left: 50%;
+  top: 47%;
+  transform: translateX(-50%);
+  z-index: 4;
+  padding: 0;
+  max-width: 92vw;
+  background: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border-top: 0;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  overflow-x: auto; scrollbar-width: none;
+}
+.mono-actions::-webkit-scrollbar { display: none; }
+.mono-actions .mono-btn { flex: none; }
+.mono-hint { font-size: 13px; color: var(--text-mute); padding: 0 4px; display: flex; align-items: center; gap: 8px; min-height: 44px; }
+.mono-hint b { color: var(--text-strong); }
+.mono-watch {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 9px 14px; border-radius: 99px;
+  border: 1px solid var(--accent-line); background: var(--accent-wash); color: var(--accent);
+  font-size: 12.5px; font-weight: 700;
+}
+
+/* ═════════ 格子详情 popover ═════════ */
+
+.mono-pop { max-width: 320px; }
+.mono-pop .ptop { display: flex; align-items: center; gap: 9px; }
+.mono-pop .pbar { width: 5px; height: 30px; border-radius: 99px; background: var(--grp, var(--border)); flex: none; }
+.mono-pop .pnm { font-size: 16px; font-weight: 700; color: var(--text-strong); }
+.mono-pop .ptype { font-size: 11px; color: var(--text-faint); margin-top: 2px; }
+.mono-pop .prow { display: flex; justify-content: space-between; font-size: 12.5px; padding: 5px 0; border-bottom: 1px solid var(--border-faint); }
+.mono-pop .prow .k { color: var(--text-mute); }
+.mono-pop .prow .v { color: var(--text-strong); font-variant-numeric: tabular-nums; }
+.mono-pop .prow.is-on { color: var(--accent); }
+.mono-pop .prow.is-on .k, .mono-pop .prow.is-on .v { color: var(--accent); }
+.mono-pop .pacts { display: flex; gap: 8px; margin-top: 4px; }
+.mono-pop .pacts .mono-btn { flex: 1; }
+
+/* ═════════ 卡牌 ═════════ */
+
+/* 卡牌自己就是一张「牌」，别再套一层 modal 玻璃框 */
+.mono-modal.mono-card-wrap {
+  perspective: 1200px; width: 100%; max-width: 320px;
+  background: none; border: none; box-shadow: none; padding: 0; overflow: visible;
+  -webkit-backdrop-filter: none; backdrop-filter: none; animation: none;
+}
+.mono-card {
+  border-radius: 20px; padding: 22px 20px;
+  background: var(--glass-surface);
+  -webkit-backdrop-filter: blur(var(--glass-blur, 20px)) saturate(1.2);
+  backdrop-filter: blur(var(--glass-blur, 20px)) saturate(1.2);
+  border: 1px solid var(--accent-line);
+  box-shadow: var(--glow-shadow), 0 18px 50px rgb(0 0 0 / .5);
+  text-align: center;
+  animation: monoFlip .7s cubic-bezier(.2, .8, .3, 1) both;
+  transform-style: preserve-3d;
+}
+@keyframes monoFlip {
+  0%   { transform: rotateY(-95deg) scale(.85); opacity: 0; }
+  60%  { transform: rotateY(12deg) scale(1.02); opacity: 1; }
+  100% { transform: rotateY(0) scale(1); opacity: 1; }
+}
+.mono-card .deck { color: var(--accent); display: flex; justify-content: center; margin-bottom: 8px; }
+.mono-card .dname { font-size: 11px; letter-spacing: .3em; color: var(--accent); font-weight: 700; }
+.mono-card .txt { font-size: 15px; line-height: 1.7; color: var(--text-strong); margin: 16px 0 20px; }
+.mono-card .who { font-size: 12px; color: var(--text-dim); }
+
+/* ═════════ 胜利屏 ═════════ */
+
+.mono-win { position: fixed; inset: 0; z-index: 9400; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; /* 8/25 她定的：「就要底色，不要全黑」——黑纱换成页面底色半透明+毛玻璃，紫底和棋盘透过来 */
+  background: color-mix(in srgb, var(--bg) 40%, transparent); backdrop-filter: blur(14px) saturate(1.15); -webkit-backdrop-filter: blur(14px) saturate(1.15); overflow: hidden; }
+.mono-win .crown { color: var(--accent); filter: drop-shadow(0 0 18px var(--accent-wash)); animation: monoRise .6s ease both; }
+.mono-win .big { font-size: 28px; font-weight: 800; color: var(--text-strong); animation: monoRise .6s .1s ease both; }
+.mono-win .sub { font-size: 13px; color: var(--text); opacity: .88; text-shadow: 0 1px 3px rgb(0 0 0 / .45); /* 8/25 她：底色改毛玻璃后灰字看不清 */ animation: monoRise .6s .2s ease both; }
+.mono-win .mono-btn { animation: monoRise .6s .3s ease both; z-index: 2; }
+@keyframes monoRise { from { opacity: 0; transform: translateY(18px); } }
+.mono-confetti { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
+.mono-confetti i {
+  position: absolute; top: -6vh; width: 8px; height: 13px; border-radius: 2px;
+  animation: monoFall linear infinite;
+}
+@keyframes monoFall {
+  0%   { transform: translateY(-10vh) rotate(0) ; opacity: 0; }
+  8%   { opacity: 1; }
+  100% { transform: translateY(112vh) rotate(760deg); opacity: .9; }
+}
+@media (prefers-reduced-motion: reduce) { .mono-confetti { display: none; } }
+
+/* ═════════ 盖房选格小抽屉 ═════════ */
+
+.mono-pick { display: flex; flex-direction: column; gap: 8px; max-height: 46vh; overflow-y: auto; }
+.mono-pick .row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 13px; background: var(--surface-2); border: 1px solid var(--border-faint); }
+.mono-pick .row .nm { flex: 1; font-size: 13px; font-weight: 600; color: var(--text); }
+.mono-pick .row .cost { font-size: 12px; color: var(--text-mute); font-variant-numeric: tabular-nums; }
+
+/* 桌面稍微放宽 */
+@media (min-width: 900px) {
+  .mono-top { padding-left: 20px; padding-right: 20px; }
+  .mono-actions { padding-left: 20px; padding-right: 20px; justify-content: center; }
+}
+
+/* ── 🗨 牌桌闲聊（2026-08-22 23:00 她要的）──────────────────────
+   「我觉得大富翁要做个聊天的地方」「功能必须得有」。棋牌室本来就有，大富翁漏了。
+   贴着底部一条，不抢棋盘的地方；消息少的时候几乎不占高度。 */
+.mono-chat {
+  /* ★23:02 不能用 position:fixed —— 操作条原来是文档流里的 footer，
+     贴底的聊天框会整个压在「掷骰子」上面（她：「不能掷骰子了」）。
+     ★23:36 她：「然后输入框稍微上一点」——按钮已经移到棋盘中间了，
+     底下这条不用再贴着屏幕边，往上抬一点更好按。 */
+  flex: none;
+  padding: 8px 10px 20px;
+  /* ★2026-08-23 17:20 第二次修，这回修的是根。
+     16:49 我写了 @media (prefers-color-scheme: dark) 自己判断日夜——错在这儿：
+     整页的颜色不归系统管，归 /assets-theme 的 boot.js 管（它自己有 auto/light/dark 三挡）。
+     她手机系统是深色、页面主题是浅色，于是**只有我这一块听了系统的**，
+     整页白花花就它一条黑压在底下（她：「你至今没改」）。
+     修法不是换个 hex，是**别再自己判断**：跟整页用同一套 token，它亮我就亮。 */
+  background: var(--chat-panel-bg);
+  border-top: 1px solid var(--chat-panel-border);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  z-index: 5;
+}
+.mono-chat-log {
+  max-height: 92px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-bottom: 6px;
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+.mono-chat-log:empty { display: none; }
+.mono-chat-log b { color: var(--accent); font-weight: 600; margin-right: 5px; }
+.mono-chat-log div { color: var(--text); }
+/* ★2026-08-24 23:26 她：「发送按键太小了，应该和那个气泡一样高」——stretch 让按钮跟输入框等高 */
+.mono-chat-bar { display: flex; gap: 8px; align-items: stretch; }
+/* ★2026-08-24 22:41 她：「打字的时候就是显示到一定长度就看不见了」——
+   原来是单行 <input>，字一多就往左滚出去。换成 textarea，随内容长高，最多 5 行，再多就在框里翻。 */
+.mono-chat-bar input, .mono-chat-bar textarea {
+  flex: 1; min-width: 0;
+  padding: 9px 12px;
+  border-radius: 18px;
+  border: 0;
+  background: var(--surface-2);
+  color: var(--text-strong);
+  font: inherit; font-size: 14px; line-height: 1.4;
+  resize: none; overflow-y: auto; max-height: calc(1.4em * 5 + 18px);
+  box-sizing: border-box; display: block;
+}
+.mono-chat-bar input::placeholder, .mono-chat-bar textarea::placeholder { color: var(--text-faint); }
+.mono-chat-bar button {
+  padding: 0 18px;
+  border-radius: 18px;
+  border: 0;
+  background: var(--accent);
+  color: var(--accent-on);
+  font: inherit; font-weight: 600;
+  display: flex; align-items: center; justify-content: center; white-space: nowrap; flex: none;
+}
+
+/* ★2026-08-22 23:41 她要的「结束」按钮（房主可见）。
+   放在顶栏右边、连接状态旁边——人在房间里就能收摊，不用先退回大厅。 */
+.mono-endbtn {
+  margin-left: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  /* ★2026-08-23 17:20 同一个根因：#ff9a9a 是给深色底配的浅字，
+     页面转成浅色后它糊在浅粉底上看不清（她那张截图里「结束」几乎读不出来）。 */
+  border: 1px solid color-mix(in oklab, var(--danger) 34%, transparent);
+  background: color-mix(in oklab, var(--danger) 14%, transparent);
+  color: var(--danger);
+  font: inherit; font-size: 13px; font-weight: 600;
+}
+
+/* ★2026-08-24 「跳过」按钮：房主专用，样式跟「邀请」同族但更低调一点——
+   它是个补救键，不该比正常操作还显眼。 */
+.mono-skipbtn {
+  margin-left: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border-soft);
+  background: var(--surface-2);
+  color: var(--text-mute);
+  font: inherit; font-size: 13px; font-weight: 600;
+}
+.mono-skipbtn:active { transform: scale(.96); }
+
+/* ★2026-08-23 音效开关（堂妹提的音效配套）。谁不想听谁自己关，只存本机。 */
+.mono-sfxbtn {
+  margin-left: 8px;
+  width: 34px; height: 34px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 999px;
+  border: 1px solid var(--border-soft);
+  background: var(--surface-2);
+  font-size: 15px; line-height: 1;
+}
+.mono-sfxbtn:active { transform: scale(.94); }
+
+/* ★2026-08-22 23:43 顶栏的「邀请」按钮（房主可见，开局前后都在）。
+   点一下复制链接，长按＝停止分享（对应会客厅收回酒牌）。 */
+.mono-sharebtn {
+  margin-left: 8px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--accent-line);
+  background: var(--accent-wash);
+  color: var(--accent);
+  font: inherit; font-size: 13px; font-weight: 600;
+}
+
+
+/* ★2026-08-22 23:51 她：「开局那个按钮在那个位置很奇怪」。
+   「按钮浮在中间」是给【对局中】设的——那时中间是棋盘、骰子下方是空的。
+   可【等人入座】阶段中间摆的是房间号卡片，按钮浮上去正好压在它身上。
+   所以分阶段：没开局时按钮回到底部，开局后才浮到骰子下面。 */
+body.mono-room:not(.is-playing) .mono-actions {
+  position: static;
+  transform: none;
+  max-width: none;
+  padding: 8px 12px 14px;
+  justify-content: center;
+}
+
+
+
+
+/* ══ 飞行棋专属（追加在大富翁基底之后，后来者赢）══ */
+
+/* ★2026-08-24 22:49 她：「遮住了，不能移动棋了」——手机上棋盘要 358px 高，底下动态+聊天+按钮把它压到只剩 301px，
+   黄蓝两个基地被动态盖住点不到。现在棋盘按剩余高度自适应（永远不越出 main），动态和聊天各收一点让它放得下。 */
+.mono-shell { flex: 1 1 auto; min-height: 0; }
+.aero-stage { display: flex; align-items: flex-start; justify-content: center; padding: 6px 8px; height: 100%; box-sizing: border-box; }
+/* ★2026-08-29 16:47 她拼了三张图：「三张图，三张不同的高低」「三张不同的高度」——
+   抖的根本不是底栏，是**棋盘自己在变大变小**。原来它 height:100%，高度取自父容器的
+   剩余空间；而剩余空间被底栏（掷骰子那态高一截）和战局日志（3 行还是 4 行）一起挤，
+   于是每走一步整张棋盘就重新缩放一次。
+   改成**按宽度定尺寸**：边长只跟视口宽和视口高有关，跟兄弟元素多高无关，
+   下面的日志再长也推不动它。 */
+/* ★16:59 她截图：棋盘下半截被日志盖住了。上一版我把它改成按 dvh 定尺寸，
+   在她的 App 里 dvh 比我 headless 量到的大，棋盘算出来超过了可用高度，
+   而 .mono-room 是 overflow:hidden，超出去的部分就被后面的日志盖住。
+   **多做了一件事**：抖动的根源是「剩余空间会变」，那两个会变的东西（日志高度、
+   底栏高度）我都已经定死了，剩余空间本来就恒定了——棋盘用回 height:100%
+   既跟着容器永远不溢出，又不会再抖。 */
+.aero-board { height: 100%; width: auto; aspect-ratio: 1 / 1; max-width: min(100%, 720px); margin: 0 auto; }
+.aero-board svg { display: block; width: 100%; height: auto; border-radius: 22px;
+  box-shadow: 0 10px 34px rgba(20, 40, 80, .18); }
+
+/* 战局动态日志（棋盘下方，跟聊天分开） */
+/* 高度**定死**（原来是 max-height，3 行和 4 行不一样高，跟着挤棋盘） */
+.aero-gamelog { height: 84px; overflow-y: auto; padding: 6px 16px;
+  font-size: 13px; color: var(--text-dim); line-height: 1.6;
+  -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+.aero-gamelog:empty { display: none; }
+.aero-gamelog .gl { padding: 1px 0; }
+.aero-gamelog .gl-knock { color: #e05656; }
+.aero-gamelog .gl-fly, .aero-gamelog .gl-jump { color: #3b8fd6; }
+.aero-gamelog .gl-home, .aero-gamelog .gl-game_over { color: #3d9e57; font-weight: 600; }
+
+/* 棋子：位置动画跟手，能动的那几架呼吸发光 */
+.aero-plane { transition: transform .45s cubic-bezier(.22, .9, .3, 1.15); cursor: default; }
+.aero-plane.is-movable { cursor: pointer; }
+.aero-plane.is-home { opacity: .88; }
+.aero-plane .aero-pulse { transform-origin: center; transform-box: fill-box;
+  animation: aeroPulse 1.1s ease-in-out infinite; pointer-events: none; }
+@keyframes aeroPulse {
+  0%, 100% { opacity: .3; transform: scale(1); }
+  50% { opacity: .95; transform: scale(1.22); }
+}
+
+/* 底部操作条 */
+.aero-turnline { display: flex; align-items: center; gap: 8px; font-size: 14px; opacity: .9; }
+/* 尺寸写死在 CSS 里，不靠 SVG 的 width/height 属性——属性在 WKWebView 里不一定吃 */
+.aero-dice { display: inline-block; width: 17px; height: 17px; flex: none;
+  vertical-align: middle; filter: drop-shadow(0 2px 3px rgba(0,0,0,.18)); }
+.aero-rollbtn { font-size: 14px; padding: 6px 18px; line-height: 1.2; }   /* 40 高，48 的条里上下各留 4 */   /* 8/29 16:45 她：「还是很大一个」——收到不撑破 48 的尺寸 */
+/* ★2026-08-29 16:41 她第五次说这件事：「我让你改成一样的大小，一样的高度」
+   「不然飞行棋的画面会抖动」「这个事情我反馈了不下五遍」「你至今没改」。
+   8/25 我只给了 min-height:48 —— 那只保证**不低于** 48。掷骰子那态里有个
+   17px 字号、上下 12px 内边距的按钮，撑到 73px，比另外三态高 25px，
+   整条 bar 连同上面的棋盘每回合上下跳一次。我量的是 min-height 有没有生效，
+   没量三态**实际**多高，所以五次都说"改好了"。
+   16:45 她看完说「掷骰子还是很大一个」「直接把下面那一块顶上去了」——
+   我第一版是把四态都撑到 73（按最高的取），方向反了：她要的是**按钮变小**，
+   四态一起回到原来那三态的 48。按钮字号 17→14、内边距 12/26→7/18、骰子 22→17。 */
+.mono-room .mono-actions { height: 48px; min-height: 48px; align-items: center;
+  /* ★16:54 她：「图标包括文字不居中了」「掷骰子的上面的矩形被吞掉了一部分」。
+     量出来内容整体偏上 3px、按钮（44 高）顶边被裁 1px——祸首是继承来的
+     overflow-x:auto：它给横向滚动条预留了空间，把内容盒压矮并上推，超出的部分直接裁掉。
+     四态现在宽度都够，根本不需要横滚。 */
+     ★16:55 她圈出按钮下缘被切：是我上一版把 padding 设成了 0——原样式底下有 14px 留白
+     （给 iOS 底部那条安全区），抹掉之后按钮就贴到屏幕边被裁。padding 恢复原值，
+     改用 content-box：height:48 只管内容区，四态照样一样高，底下的留白照样在。 */
+  overflow: visible; box-sizing: content-box; padding: 8px 12px 14px; }
+/* 8/25 晚她又圈的：三态【宽度】也不一样（掷骰子按钮态最宽），画面跟着抖。
+   开局后定死一个箱子宽，内容在里面居中，三态共用同一副骨架。 */
+body.mono-room.is-playing .mono-actions { width: 340px; max-width: 92vw; }
+.aero-rollbtn .aero-dice { width: 17px; height: 17px; margin-right: 2px; }
+
+/* 阵营色块选中态 */
+.aero-sw.is-taken { opacity: .28; cursor: not-allowed; }
+
+/* 对局日志行配色点缀 */
+.mono-chat-msg.aero-log-knock { color: #e05656; }
+.mono-chat-msg.aero-log-fly, .mono-chat-msg.aero-log-jump { color: #3b8fd6; }
+.mono-chat-msg.aero-log-home, .mono-chat-msg.aero-log-game_over { color: #3d9e57; font-weight: 600; }
+
+/* 等人卡片（2026-08-24 她说「这个界面很丑」——原来是几行裸字浮在空页上，重画成一张居中卡） */
+.aero-stage { position: relative; }
+.mono-wait { min-height: 60vh; }   /* 撑高的活交给等人卡自己，开局后舞台按剩余高度缩，棋盘才不越界 */
+.mono-wait { position: static; }
+.wt-card { width: min(100%, 380px); margin: 10vh auto 0; padding: 26px 22px;
+  display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center; }
+.wt-plane { font-size: 40px; line-height: 1; transform: rotate(-12deg); }
+.wt-big { font-size: 21px; font-weight: 700; color: var(--text-strong); }
+.wt-sub { font-size: 13px; color: var(--text-dim); }
+.wt-sub b { letter-spacing: 1px; }
+.wt-seats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; margin: 8px 0 4px; }
+.wt-seat { display: flex; align-items: center; gap: 7px; padding: 9px 11px; border-radius: 12px;
+  background: var(--glass-surface); border: 1px solid var(--glow-border); font-size: 13px; }
+.wt-seat .dot { width: 12px; height: 12px; border-radius: 50%; flex: none; }
+.wt-seat .nm { font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wt-seat .fc { margin-left: auto; font-size: 11px; color: var(--text-dim); flex: none; }
+.wt-seat.is-empty { justify-content: center; color: var(--text-dim); opacity: .55; font-size: 12px; }
+.wt-btns { display: flex; gap: 8px; width: 100%; margin-top: 6px; }
+.wt-btns .mono-btn { flex: 1; }
+
+/* 玩家条直接用大富翁的 .pl-card（2026-08-24 她定的） */
+
+/* 聊天露 3 行（其余上翻），给棋盘让高度 */
+body.mono-room .mono-chat-log { max-height: 62px; }
+
+/* ★2026-09-02 12:49 她：「把所有的这个框都拆掉」——大厅「房间」旁的刷新键不要外框，只留图标（六个游戏同一条） */
+#lb-refresh { border: 0; background: transparent; box-shadow: none; padding: 6px; }
+#lb-refresh:active { opacity: .6; }

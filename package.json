@@ -1,0 +1,17 @@
+{
+  "name": "aeroplane-chess",
+  "version": "1.0.0",
+  "description": "飞行棋 · 自托管、开房邀请、四家同桌的网页飞行棋（Aeroplane chess / 飛行機チェス）— rules by Mikann, board by Damien, code by 澄 (Cheng).",
+  "license": "CC-BY-4.0",
+  "author": "Mikann & 澄 & Damien",
+  "private": false,
+  "main": "server.cjs",
+  "scripts": {
+    "start": "node server.cjs",
+    "test": "node test/engine.test.cjs"
+  },
+  "engines": { "node": ">=18" },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
