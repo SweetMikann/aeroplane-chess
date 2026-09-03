@@ -16,7 +16,7 @@ The rules are Mikann's own house rules, not the standard ones — see [docs/RULE
 ## 跑起来 · Run
 
 ```bash
-git clone https://github.com/mikann05013-dev/aeroplane-chess.git
+git clone https://github.com/SweetMikann/aeroplane-chess.git
 cd aeroplane-chess
 npm install
 BISCA_PASSWORD=你的密码 PORT=8082 HOST=0.0.0.0 npm start
