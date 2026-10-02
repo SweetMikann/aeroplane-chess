@@ -323,7 +323,19 @@
       s += '<marker id="arr-' + cc + '" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">' +
         '<path d="M0 0 L10 5 L0 10 z" fill="' + HEX_DARK[cc] + '"/></marker>';
     }
+    /* ★2026-09-01 她 8/30 报的「四角露出直角灰边」（她 iPhone 上才有）：
+       圆角和阴影原来是 CSS 挂在 <svg> 元素上的——Safari 对 svg 的 CSS 圆角处理不可靠，
+       box-shadow 按直角盒子画，四角露出灰色直角。头绪：无头 Chromium 里怎么截都没有。
+       修法：阴影搬进 svg 内部画（圆角矩形+高斯模糊），CSS 那两行删掉。
+       22px 圆角在 414px 宽的棋盘上 ≈ 48 viewBox 单位；34px 模糊 ≈ stdDeviation 18；10px 下移 ≈ 22。 */
+    s += '<filter id="plate-shadow" x="-20%" y="-20%" width="140%" height="146%">' +
+      '<feGaussianBlur stdDeviation="37"/></filter>';
+    /* box-shadow 只画盒子外侧——这里用 mask 把圆角方块内部抠掉，中心不许染灰（第一版没抠，整个棋盘罩了层灰）。 */
+    s += '<mask id="plate-cut">' +
+      '<rect x="-120" y="-120" width="1140" height="1140" fill="#fff"/>' +
+      '<rect x="0" y="0" width="900" height="900" rx="48" fill="#000"/></mask>';
     s += '</defs>';
+    s += '<g mask="url(#plate-cut)"><rect x="0" y="22" width="900" height="900" rx="48" fill="rgb(20 40 80 / 0.18)" filter="url(#plate-shadow)"/></g>';
 
     /* 棋盘本体使用透明背景；海洋装饰代码保留但不挂载。 */
     var deco = '';
@@ -567,7 +579,10 @@
     /* 8/25 晚她圈图：门口空白位(-2/-3)上两架同色机完全重叠成"分体"。
        根因＝这里把所有负数位置都排除在归组外。门口位是真实站位，要参与堆叠；
        机库(-1)不算。门口位是各色私有的，键带上色名防串味。 */
-    function stackKey(color, pos) { return pos < 0 ? color + '@' + pos : String(pos); }
+    /* ★2026-10-02 16:19 她圈图：她四架叠在黄色终点道 104，我一架在蓝色终点道 104——两条道各是各的格子，
+       可这里拿 "104" 当同一个键，于是五架被当成「同一格不同色」，按错开的规则左右散开、离了格子中心。
+       终点道（100–105）跟门口位一样是各色私有的，键带上色名。 */
+    function stackKey(color, pos) { return (pos < 0 || pos >= 100) ? color + '@' + pos : String(pos); }
     state.players.forEach(function (p) {
       p.planes.forEach(function (pos) {
         if (pos === 999) return;
@@ -664,6 +679,20 @@
     var lp = state.lastPath;
     var lpKey = lp ? (lp.pid + ':' + lp.idx) : null;
     var lpFresh = !!(lp && lp.segments && lp.segments.length && container.__aeroLastPathSeq !== lp.seq);
+    /* ★2026-10-02 16:12 她：「撞人的时候应该先走动，后撞棋子」——原来被撞的那架和走棋的同时开播，
+       人还没走到，对方已经飞回机库了。这里先把走棋那架的整条轨迹算出来，被撞的那架等它走到自己那格再飞走。 */
+    var leadBuilt = null;
+    if (lpFresh && currentPositions[lp.pid + ':' + lp.idx]) {
+      leadBuilt = buildPathAnimation(lp.segments, currentPositions[lp.pid + ':' + lp.idx].color, lp.idx);
+    }
+    function arrivalDelay(xy) {
+      if (!leadBuilt || !xy) return 0;
+      for (var fi = 0; fi < leadBuilt.frames.length; fi++) {
+        var m = /translate\(([-\d.]+)px,\s*([-\d.]+)px\)/.exec(leadBuilt.frames[fi].transform || '');
+        if (m && Math.abs(+m[1] - xy[0]) < 1 && Math.abs(+m[2] - xy[1]) < 1) return leadBuilt.duration * (leadBuilt.frames[fi].offset || 0);
+      }
+      return leadBuilt.duration;
+    }
     Array.prototype.forEach.call(layer.querySelectorAll('.aero-plane'), function (plane) {
       if (typeof plane.animate !== 'function') return;
       var key = plane.dataset.pid + ':' + plane.dataset.idx;
@@ -709,6 +738,7 @@
       var fbDur = motionDuration(points, kind);
       var fbAnim = plane.animate(frames, {
         duration: fbDur,
+        delay: kind === 'knock' ? arrivalDelay(posXY(before.color, before.pos, before.planeIdx)) : 0,
         easing: kind === 'walk' ? 'linear' : 'cubic-bezier(.2,.75,.25,1)',
         fill: 'both'
       });
@@ -1195,8 +1225,8 @@
       '#r-battle-log{max-height:88px;overflow-y:auto;display:flex;flex-direction:column;gap:3px;' +
         'font-size:12.5px;line-height:1.45}' +
       '#r-chat .aero-chat-title{margin:0 0 6px;font-size:12px;font-weight:800;letter-spacing:.08em;color:var(--text-dim)}' +
-      /* ★2026-09-02 12:19 她两次圈图：iPhone 上这张卡的 box-shadow 画成直角、圆角外露一块浅色——阴影整个删掉（iOS 卡片一律零阴影） */
-      '#r-players .pl-card.is-finished{border-color:#d6a62b;background:linear-gradient(135deg,#fff9e8,#fff2b8);box-shadow:none}' +
+      '#r-players .pl-card.is-finished{border-color:#d6a62b;background:linear-gradient(135deg,#fff9e8,#fff2b8);' +
+        'box-shadow:0 0 0 2px rgb(214 166 43 / .14),0 7px 20px rgb(112 82 15 / .14)}' +
       '#r-players .pl-card.is-finished .cash{color:#80610b;font-weight:900}' +
       /* 8/25 她要的：金卡上名字/尾注/「（我）」别再用深色主题的浅字，全换深金棕 */
       '#r-players .pl-card.is-finished .nm,#r-players .pl-card.is-finished .nm::after{color:#3d3320}' +
